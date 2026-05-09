@@ -27,8 +27,8 @@ functions:
   feedback:
     handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
     events:
-      - http:
-          path: avaliacao
+      - httpApi:
+          path: /avaliacao
           method: post
 
 resources:
