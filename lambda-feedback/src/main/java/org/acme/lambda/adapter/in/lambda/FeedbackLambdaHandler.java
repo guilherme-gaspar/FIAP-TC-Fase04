@@ -1,20 +1,22 @@
 package org.acme.lambda.adapter.in.lambda;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MediaType;
 import org.acme.lambda.application.dto.FeedbackRequest;
 import org.acme.lambda.application.usecase.ProcessFeedbackUseCase;
 
-@Named("feedback")
-public class FeedbackLambdaHandler implements RequestHandler<FeedbackRequest, String> {
+@Path("/avaliacao")
+@Consumes(MediaType.APPLICATION_JSON)
+public class FeedbackLambdaHandler {
 
     @Inject
     ProcessFeedbackUseCase processFeedbackUseCase;
 
-    @Override
-    public String handleRequest(FeedbackRequest input, Context context) {
+    @POST
+    public String receber(FeedbackRequest input) {
         processFeedbackUseCase.execute(input);
         return "Feedback recebido com sucesso";
     }
