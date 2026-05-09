@@ -7,9 +7,41 @@ provider:
   runtime: java25
   region: us-east-2
 
+  environment:
+    SNS_TOPIC_ARN:
+      Ref: FeedbackCriticoTopic
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            Ref: FeedbackCriticoTopic
+
 package:
   artifact: target/function.zip
 
 functions:
   feedback:
     handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+    events:
+      - http:
+          path: avaliacao
+          method: post
+
+resources:
+  Resources:
+    FeedbackCriticoTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: feedback-critico
+
+    FeedbackEmailSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn:
+          Ref: FeedbackCriticoTopic
+        Protocol: email
+        Endpoint: RM368441@fiap.com.br
