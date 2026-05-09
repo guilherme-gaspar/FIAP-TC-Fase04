@@ -1,4 +1,4 @@
-service: relatorio-service
+service: lambda
 
 frameworkVersion: '3'
 

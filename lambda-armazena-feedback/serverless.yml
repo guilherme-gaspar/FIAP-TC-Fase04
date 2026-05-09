@@ -11,5 +11,5 @@ package:
   artifact: target/function.zip
 
 functions:
-  relatorio:
+  armazenaFeedback:
     handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
