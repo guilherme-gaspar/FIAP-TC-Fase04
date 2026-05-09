@@ -1,4 +1,4 @@
-service: lambda
+service: lambda-relatorio
 
 frameworkVersion: '3'
 

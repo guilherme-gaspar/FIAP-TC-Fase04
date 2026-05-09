@@ -1,4 +1,4 @@
-service: lambda
+service: lambda-armazena-feedback
 
 frameworkVersion: '3'
 
