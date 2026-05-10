@@ -1,0 +1,23 @@
+service: lambda-authorizer
+
+frameworkVersion: '3'
+
+provider:
+	name: aws
+	runtime: java17
+	region: us-east-2
+
+	environment:
+		API_KEY: "06e0e705-0651-45f5-aec1-6fde972a0a66"
+
+	iam:
+		role:
+			statements: []
+
+package:
+	artifact: target/function.zip
+
+functions:
+	authorizer:
+		name: lambda-authorizer
+		handler: org.acme.authorizer.AuthorizerHandler

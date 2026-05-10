@@ -15,6 +15,7 @@ jobs:
           - lambda-feedback
           - lambda-relatorio
           - lambda-armazena-feedback
+          - lambda-authorizer
 
     steps:
       - name: Checkout

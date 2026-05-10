@@ -5,7 +5,9 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.acme.lambda.application.dto.FeedbackRequest;
+import org.acme.lambda.application.dto.FeedbackResponse;
 import org.acme.lambda.application.usecase.ProcessFeedbackUseCase;
 
 @Path("/avaliacao")
@@ -16,8 +18,10 @@ public class FeedbackLambdaHandler {
     ProcessFeedbackUseCase processFeedbackUseCase;
 
     @POST
-    public String receber(FeedbackRequest input) {
+    public Response receber(FeedbackRequest input) {
         processFeedbackUseCase.execute(input);
-        return "Feedback recebido com sucesso";
+        return Response.ok()
+                .entity(new FeedbackResponse("Feedback recebido com sucesso"))
+                .build();
     }
 }

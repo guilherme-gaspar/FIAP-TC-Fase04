@@ -6,10 +6,16 @@ provider:
   name: aws
   runtime: java25
   region: us-east-2
+  httpApi:
+    authorizers:
+      lambdaAuthorizer:
+        type: request
+        functionName: lambda-authorizer
 
   environment:
     SNS_TOPIC_ARN:
       Ref: FeedbackCriticoTopic
+    TARGET_FUNCTION_NAME: "arn:aws:lambda:us-east-2:990773979941:function:lambda-armazena-feedback-dev-armazenaFeedback"
 
   iam:
     role:
@@ -23,7 +29,7 @@ provider:
           Action:
             - lambda:InvokeFunction
           Resource:
-            - arn:aws:lambda:us-east-2:990773979941:function:lambda-armazena-feedback
+            - "arn:aws:lambda:us-east-2:990773979941:function:lambda-armazena-feedback-dev-armazenaFeedback"
 
 package:
   artifact: target/function.zip
@@ -35,6 +41,8 @@ functions:
       - httpApi:
           path: /avaliacao
           method: post
+          authorizer:
+            name: lambdaAuthorizer
 
 resources:
   Resources:

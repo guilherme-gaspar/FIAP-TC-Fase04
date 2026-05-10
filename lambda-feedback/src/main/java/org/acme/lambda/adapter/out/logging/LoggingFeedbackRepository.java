@@ -8,9 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.acme.lambda.application.port.out.FeedbackRepository;
 import org.acme.lambda.domain.model.Feedback;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +20,9 @@ import java.util.Map;
 public class LoggingFeedbackRepository implements FeedbackRepository {
 
     private static final Logger LOG = Logger.getLogger(LoggingFeedbackRepository.class);
-    private static final String TARGET_FUNCTION_NAME = "lambda-armazena-feedback";
+
+    @ConfigProperty(name = "TARGET_FUNCTION_NAME")
+    String TARGET_FUNCTION_NAME;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -30,8 +34,10 @@ public class LoggingFeedbackRepository implements FeedbackRepository {
             String json = mapper.writeValueAsString(payload);
 
             AWSLambda lambda = AWSLambdaClientBuilder.defaultClient();
+
             InvokeRequest request = new InvokeRequest()
                     .withFunctionName(TARGET_FUNCTION_NAME)
+                    .withInvocationType("Event")
                     .withPayload(json);
 
             InvokeResult result = lambda.invoke(request);
@@ -51,6 +57,8 @@ public class LoggingFeedbackRepository implements FeedbackRepository {
         Map<String, Object> payload = new HashMap<>();
         payload.put("nota", feedback.nota());
         payload.put("urgency", feedback.urgency().name());
+        payload.put("descricao", feedback.descricao());
+        payload.put("dataEnvio", Instant.now().toString());
         return payload;
     }
 }
