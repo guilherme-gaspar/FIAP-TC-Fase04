@@ -42,7 +42,7 @@ functions:
           path: /avaliacao
           method: post
           authorizer:
-            name: lambdaAuthorizer
+            name: lambda-authorizer
 
 resources:
   Resources:
