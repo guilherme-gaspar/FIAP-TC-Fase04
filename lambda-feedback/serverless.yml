@@ -11,7 +11,7 @@ provider:
     authorizers:
       lambdaAuthorizer:
         type: request
-        functionArn: arn:aws:lambda:us-east-2:990773979941:function:lambda-authorizer-dev-lambdaAuthorizer
+        functionArn: arn:aws:lambda:us-east-2:990773979941:function:lambda-authorizer
 
   environment:
     SNS_TOPIC_ARN:
