@@ -11,11 +11,9 @@ public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Ma
 
     private static final Logger LOG = Logger.getLogger(AuthorizerHandler.class);
 
-    @ConfigProperty(name = "API_KEY")
-    String API_KEY;
-
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> event, Context context) {
+        String API_KEY = System.getenv("API_KEY");
         LOG.info("=== Iniciando AuthorizerHandler ===");
         LOG.info("API_KEY value: " + (API_KEY != null ? "***" : "NULL"));
         LOG.info("Event: " + event);
