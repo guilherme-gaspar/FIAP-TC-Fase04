@@ -10,10 +10,10 @@ import java.util.Map;
 public class AuthorizerHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
     private static final Logger LOG = Logger.getLogger(AuthorizerHandler.class);
+    String API_KEY = "1239";
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> event, Context context) {
-        String API_KEY = System.getenv("API_KEY");
         LOG.info("=== Iniciando AuthorizerHandler ===");
         LOG.info("API_KEY value: " + (API_KEY != null ? "***" : "NULL"));
         LOG.info("Event: " + event);
