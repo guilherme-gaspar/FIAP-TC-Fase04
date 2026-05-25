@@ -9,50 +9,12 @@ provider:
 
 resources:
   Resources:
-    # VPC para o RDS
-    FiapVPC:
-      Type: AWS::EC2::VPC
-      Properties:
-        CidrBlock: 10.0.0.0/16
-        EnableDnsHostnames: true
-        EnableDnsSupport: true
-        Tags:
-          - Key: Name
-            Value: fiap-vpc
-
-    # Subnet Pública 1
-    PublicSubnet1:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId:
-          Ref: FiapVPC
-        CidrBlock: 10.0.1.0/24
-        AvailabilityZone: us-east-2a
-        MapPublicIpOnLaunch: true
-        Tags:
-          - Key: Name
-            Value: fiap-public-subnet-1
-
-    # Subnet Pública 2
-    PublicSubnet2:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId:
-          Ref: FiapVPC
-        CidrBlock: 10.0.2.0/24
-        AvailabilityZone: us-east-2b
-        MapPublicIpOnLaunch: true
-        Tags:
-          - Key: Name
-            Value: fiap-public-subnet-2
-
-    # Security Group para RDS
+    # Security Group para RDS (usando VPC existente)
     RDSSecurityGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
         GroupDescription: Security group for RDS PostgreSQL - Internal only
-        VpcId:
-          Ref: FiapVPC
+        VpcId: vpc-0007750f59de0bdd0  # VPC existente
         SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 5432
@@ -68,8 +30,9 @@ resources:
       Properties:
         DBSubnetGroupDescription: Subnet group for RDS
         SubnetIds:
-          - Ref: PublicSubnet1
-          - Ref: PublicSubnet2
+          - subnet-0ee0a1dd869db04c7
+          - subnet-0da578789a8cb50e6
+          - subnet-0d084d370363f05ae
         Tags:
           - Key: Name
             Value: fiap-db-subnet-group
@@ -123,12 +86,6 @@ resources:
       Export:
         Name: FiapDatabasePort
 
-    VPCId:
-      Description: VPC ID
-      Value:
-        Ref: FiapVPC
-      Export:
-        Name: FiapVPCId
 
     DBSubnetGroupName:
       Description: DB Subnet Group Name
