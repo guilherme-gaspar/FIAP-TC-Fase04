@@ -2,7 +2,8 @@ name: Deploy RDS
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -24,6 +25,6 @@ jobs:
           DB_MASTER_USERNAME: ${{ secrets.DB_MASTER_USERNAME }}
           DB_MASTER_PASSWORD: ${{ secrets.DB_MASTER_PASSWORD }}
         run: |
-          npm install -g serverless
+          npm install -g serverless@3
           serverless deploy -c serverless-rds.yml
 
