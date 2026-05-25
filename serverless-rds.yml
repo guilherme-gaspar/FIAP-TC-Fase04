@@ -33,6 +33,19 @@ resources:
           - Key: Name
             Value: fiap-public-subnet-1
 
+    # Subnet Pública 2
+    PublicSubnet2:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: FiapVPC
+        CidrBlock: 10.0.2.0/24
+        AvailabilityZone: us-east-2b
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: fiap-public-subnet-2
+
     # Security Group para RDS
     RDSSecurityGroup:
       Type: AWS::EC2::SecurityGroup
@@ -56,6 +69,7 @@ resources:
         DBSubnetGroupDescription: Subnet group for RDS
         SubnetIds:
           - Ref: PublicSubnet1
+          - Ref: PublicSubnet2
         Tags:
           - Key: Name
             Value: fiap-db-subnet-group
