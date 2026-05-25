@@ -1,0 +1,125 @@
+service: fiap-tc-rds
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: java25
+  region: us-east-2
+
+resources:
+  Resources:
+    # VPC para o RDS
+    FiapVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsHostnames: true
+        EnableDnsSupport: true
+        Tags:
+          - Key: Name
+            Value: fiap-vpc
+
+    # Subnet Pública 1
+    PublicSubnet1:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: FiapVPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: us-east-2a
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: fiap-public-subnet-1
+
+    # Security Group para RDS
+    RDSSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for RDS PostgreSQL - Internal only
+        VpcId:
+          Ref: FiapVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            CidrIp: 10.0.0.0/16
+        Tags:
+          - Key: Name
+            Value: fiap-rds-sg
+
+    # DB Subnet Group
+    DBSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnet group for RDS
+        SubnetIds:
+          - Ref: PublicSubnet1
+        Tags:
+          - Key: Name
+            Value: fiap-db-subnet-group
+
+    # RDS Instance
+    FiapDatabase:
+      Type: AWS::RDS::DBInstance
+      DeletionPolicy: Delete
+      Properties:
+        DBInstanceIdentifier: fiap-postgres-db
+        DBInstanceClass: db.t3.micro
+        Engine: postgres
+        EngineVersion: '16.1'
+        MasterUsername: ${env:DB_MASTER_USERNAME}
+        MasterUserPassword: ${env:DB_MASTER_PASSWORD}
+        AllocatedStorage: 20
+        StorageType: gp2
+        StorageEncrypted: false
+        DBSubnetGroupName:
+          Ref: DBSubnetGroup
+        VPCSecurityGroups:
+          - Ref: RDSSecurityGroup
+        PubliclyAccessible: false
+        BackupRetentionPeriod: 1
+        PreferredBackupWindow: '03:00-04:00'
+        PreferredMaintenanceWindow: 'sun:04:00-sun:05:00'
+        MultiAZ: false
+        EnableIAMDatabaseAuthentication: false
+        EnableCloudwatchLogsExports:
+          - postgresql
+        Tags:
+          - Key: Name
+            Value: fiap-rds-postgres
+
+  Outputs:
+    DBEndpoint:
+      Description: RDS Database Endpoint
+      Value:
+        Fn::GetAtt:
+          - FiapDatabase
+          - Endpoint.Address
+      Export:
+        Name: FiapDatabaseEndpoint
+
+    DBPort:
+      Description: RDS Database Port
+      Value:
+        Fn::GetAtt:
+          - FiapDatabase
+          - Endpoint.Port
+      Export:
+        Name: FiapDatabasePort
+
+    VPCId:
+      Description: VPC ID
+      Value:
+        Ref: FiapVPC
+      Export:
+        Name: FiapVPCId
+
+    DBSubnetGroupName:
+      Description: DB Subnet Group Name
+      Value:
+        Ref: DBSubnetGroup
+      Export:
+        Name: FiapDBSubnetGroup
+
