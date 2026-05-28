@@ -7,14 +7,84 @@ provider:
   runtime: java25
   region: us-east-2
 
+  vpc:
+    securityGroupIds:
+      - !GetAtt LambdaSecurityGroup.GroupId
+    subnetIds:
+      - subnet-0ee0a1dd869db04c7
+      - subnet-0da578789a8cb50e6
+
+  environment:
+    SNS_TOPIC_ARN:
+      Ref: FeedbackCriticoTopic
+
+    DB_URL: ${env:DB_JDBC_URL}
+    DB_USER: ${env:DB_MASTER_USERNAME}
+    DB_PASSWORD: ${env:DB_MASTER_PASSWORD}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            Ref: FeedbackCriticoTopic
+
 package:
   artifact: target/function.zip
 
 functions:
   relatorio:
     handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+    timeout: 30
     events:
       - schedule:
           rate: cron(0 8 ? * MON *)
           enabled: true
           description: Dispara relatorio semanal toda segunda-feira as 08:00 UTC
+
+resources:
+  Resources:
+    LambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for lambda-relatorio (egress only, DB access controlled by RDS SG)
+        VpcId: vpc-0007750f59de0bdd0
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            CidrIp: 0.0.0.0/0
+
+    # VPC Endpoint para SNS (Interface Endpoint) - necessário quando a Lambda está em subnets privadas
+    SnsVpcEndpointSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: SG for SNS VPC Endpoint (allow 443 from Lambda SG)
+        VpcId: vpc-0007750f59de0bdd0
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            SourceSecurityGroupId:
+              Fn::GetAtt:
+                - LambdaSecurityGroup
+                - GroupId
+
+    SnsVpcEndpoint:
+      Type: AWS::EC2::VPCEndpoint
+      Properties:
+        VpcId: vpc-0007750f59de0bdd0
+        VpcEndpointType: Interface
+        ServiceName: com.amazonaws.${aws:region}.sns
+        PrivateDnsEnabled: true
+        SubnetIds:
+          - subnet-0ee0a1dd869db04c7
+          - subnet-0da578789a8cb50e6
+        SecurityGroupIds:
+          - Ref: SnsVpcEndpointSecurityGroup
+
+    FeedbackCriticoTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: feedback-critico
+
