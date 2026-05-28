@@ -85,8 +85,6 @@ jobs:
       - name: Deploy módulo
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
           DB_MASTER_USERNAME: ${{ secrets.DB_MASTER_USERNAME }}
           DB_MASTER_PASSWORD: ${{ secrets.DB_MASTER_PASSWORD }}
         run: serverless deploy
