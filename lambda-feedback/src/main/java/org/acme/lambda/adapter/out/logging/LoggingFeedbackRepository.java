@@ -1,64 +1,41 @@
 package org.acme.lambda.adapter.out.logging;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.lambda.model.InvokeRequest;
-import com.amazonaws.services.lambda.model.InvokeResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.acme.lambda.application.port.out.FeedbackRepository;
 import org.acme.lambda.domain.model.Feedback;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import java.nio.charset.StandardCharsets;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 @ApplicationScoped
 public class LoggingFeedbackRepository implements FeedbackRepository {
 
     private static final Logger LOG = Logger.getLogger(LoggingFeedbackRepository.class);
 
-    @ConfigProperty(name = "TARGET_FUNCTION_NAME")
-    String TARGET_FUNCTION_NAME;
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Inject
+    DataSource dataSource;
 
     @Override
     public void save(Feedback feedback) {
-        Map<String, Object> payload = buildRequest(feedback);
+        String sql = "INSERT INTO feedback (descricao, urgency, nota, data_envio) VALUES (?, ?, ?, ?)";
 
-        try {
-            String json = mapper.writeValueAsString(payload);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            AWSLambda lambda = AWSLambdaClientBuilder.defaultClient();
+            statement.setString(1, feedback.descricao());
+            statement.setString(2, feedback.urgency().name());
+            statement.setInt(3, feedback.nota());
+            statement.setTimestamp(4, java.sql.Timestamp.from(Instant.now()));
 
-            InvokeRequest request = new InvokeRequest()
-                    .withFunctionName(TARGET_FUNCTION_NAME)
-                    .withInvocationType("Event")
-                    .withPayload(json);
-
-            InvokeResult result = lambda.invoke(request);
-
-            int statusCode = result.getStatusCode();
-            String response = result.getPayload() != null ?
-                    new String(result.getPayload().array(), StandardCharsets.UTF_8) : null;
-
-            LOG.infov("Invocação de {0} finalizada. status={1} response={2}",
-                    TARGET_FUNCTION_NAME, statusCode, response);
+            statement.executeUpdate();
+            LOG.infov("Feedback salvo com sucesso. nota={0}, urgency={1}", feedback.nota(), feedback.urgency().name());
         } catch (Exception e) {
-            LOG.error("Erro ao invocar lambda de armazenamento de feedback", e);
+            LOG.error("Erro ao salvar feedback no PostgreSQL", e);
+            throw new RuntimeException("Erro ao salvar feedback", e);
         }
-    }
-
-    private static Map<String, Object> buildRequest(Feedback feedback) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("nota", feedback.nota());
-        payload.put("urgency", feedback.urgency().name());
-        payload.put("descricao", feedback.descricao());
-        payload.put("dataEnvio", Instant.now().toString());
-        return payload;
     }
 }
