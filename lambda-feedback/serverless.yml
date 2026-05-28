@@ -54,14 +54,14 @@ package:
 functions:
   feedback:
     handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+    timeout: 30
 
     events:
       - httpApi:
           path: /avaliacao
           method: post
 
-          authorizer:
-            name: lambdaAuthorizer
+          authorizer: lambdaAuthorizer
 
 resources:
   Resources:
