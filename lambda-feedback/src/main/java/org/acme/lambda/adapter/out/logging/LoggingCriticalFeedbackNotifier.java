@@ -3,6 +3,8 @@ package org.acme.lambda.adapter.out.logging;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.acme.lambda.application.port.out.CriticalFeedbackNotifier;
 import org.acme.lambda.domain.model.Feedback;
@@ -40,7 +42,16 @@ public class LoggingCriticalFeedbackNotifier implements CriticalFeedbackNotifier
 
         try {
             LOG.infov("Publicando notificação no SNS. topicArn={0}", topicArn);
-            AmazonSNS sns = AmazonSNSClientBuilder.defaultClient();
+
+            ClientConfiguration cfg = new ClientConfiguration();
+            cfg.setProtocol(Protocol.HTTPS);
+            cfg.setConnectionTimeout(2000);
+            cfg.setRequestTimeout(4000);
+            cfg.setClientExecutionTimeout(5000);
+
+            AmazonSNS sns = AmazonSNSClientBuilder.standard()
+                    .withClientConfiguration(cfg)
+                    .build();
             PublishRequest publishRequest = new PublishRequest()
                     .withTopicArn(topicArn)
                     .withMessage(payload)
