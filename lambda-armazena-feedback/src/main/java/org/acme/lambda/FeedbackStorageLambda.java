@@ -26,11 +26,14 @@ public class FeedbackStorageLambda implements RequestHandler<Map<String, Object>
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
+        LOG.infov("Recebido evento para armazenamento de feedback: {0}", input);
+
         String descricao = asString(input.get("descricao"));
         String urgency = asString(input.get("urgency"));
         Integer nota = asInteger(input.get("nota"));
 
         if (descricao == null || descricao.isBlank() || nota == null) {
+            LOG.warnv("Payload inválido recebido. descricao={0}, nota={1}, urgency={2}", descricao, nota, urgency);
             return response(400, "Payload inválido: descricao e nota são obrigatórios.");
         }
 
@@ -43,6 +46,7 @@ public class FeedbackStorageLambda implements RequestHandler<Map<String, Object>
             statement.setInt(3, nota);
             statement.setTimestamp(4, Timestamp.from(Instant.now()));
             statement.executeUpdate();
+            LOG.infov("Feedback salvo com sucesso. nota={0}, urgency={1}, descricao={2}", nota, urgency, descricao);
             return response(200, "Feedback salvo com sucesso.");
         } catch (Exception e) {
             LOG.error("Erro ao salvar feedback no PostgreSQL", e);
