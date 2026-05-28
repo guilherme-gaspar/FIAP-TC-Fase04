@@ -10,7 +10,7 @@ provider:
   # VPC Configuration - Lambda precisa estar na mesma VPC do RDS
   vpc:
     securityGroupIds:
-      - sg-0007750f59de0bdd0
+      - !GetAtt LambdaSecurityGroup.GroupId
     subnetIds:
       - subnet-0ee0a1dd869db04c7
       - subnet-0da578789a8cb50e6
@@ -65,6 +65,15 @@ functions:
 
 resources:
   Resources:
+    LambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for lambda-feedback (egress only, DB access controlled by RDS SG)
+        VpcId: vpc-0007750f59de0bdd0
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            CidrIp: 0.0.0.0/0
+
     FeedbackCriticoTopic:
       Type: AWS::SNS::Topic
       Properties:
@@ -77,3 +86,14 @@ resources:
           Ref: FeedbackCriticoTopic
         Protocol: email
         Endpoint: RM368441@fiap.com.br
+
+  Outputs:
+    LambdaSecurityGroupId:
+      Description: Security Group created for lambda-feedback
+      Value:
+        Fn::GetAtt:
+          - LambdaSecurityGroup
+          - GroupId
+      Export:
+        Name: lambda-feedback-LambdaSecurityGroupId
+

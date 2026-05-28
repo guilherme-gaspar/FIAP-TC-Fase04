@@ -19,7 +19,8 @@ resources:
           - IpProtocol: tcp
             FromPort: 5432
             ToPort: 5432
-            CidrIp: 10.0.0.0/16
+            SourceSecurityGroupId:
+              Fn::ImportValue: lambda-feedback-LambdaSecurityGroupId
         Tags:
           - Key: Name
             Value: fiap-rds-sg
@@ -68,6 +69,13 @@ resources:
             Value: fiap-rds-postgres
 
   Outputs:
+    RDSSecurityGroupId:
+      Description: Security Group used by the RDS instance
+      Value:
+        Ref: RDSSecurityGroup
+      Export:
+        Name: FiapRDSSecurityGroupId
+
     DBEndpoint:
       Description: RDS Database Endpoint
       Value:
