@@ -20,6 +20,11 @@ provider:
 
     TARGET_FUNCTION_NAME: arn:aws:lambda:us-east-2:990773979941:function:lambda-armazena-feedback-dev-armazenaFeedback
 
+    # RDS PostgreSQL Configuration
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_MASTER_USERNAME}
+    DB_PASSWORD: ${env:DB_MASTER_PASSWORD}
+
   iam:
     role:
       statements:
