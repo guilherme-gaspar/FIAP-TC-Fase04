@@ -7,6 +7,14 @@ provider:
   runtime: java25
   region: us-east-2
 
+  # VPC Configuration - Lambda precisa estar na mesma VPC do RDS
+  vpc:
+    securityGroupIds:
+      - sg-0007750f59de0bdd0
+    subnetIds:
+      - subnet-0ee0a1dd869db04c7
+      - subnet-0da578789a8cb50e6
+
   httpApi:
     authorizers:
       lambdaAuthorizer:
