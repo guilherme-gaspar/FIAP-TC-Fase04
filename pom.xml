@@ -12,7 +12,6 @@
     <modules>
         <module>lambda-feedback</module>
         <module>lambda-relatorio</module>
-        <module>lambda-armazena-feedback</module>
         <module>lambda-authorizer</module>
     </modules>
 
