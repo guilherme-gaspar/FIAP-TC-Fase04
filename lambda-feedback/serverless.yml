@@ -74,6 +74,33 @@ resources:
           - IpProtocol: -1
             CidrIp: 0.0.0.0/0
 
+    SnsVpcEndpointSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: SG for SNS VPC Endpoint (allow 443 from Lambda SG)
+        VpcId: vpc-0007750f59de0bdd0
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            SourceSecurityGroupId:
+              Fn::GetAtt:
+                - LambdaSecurityGroup
+                - GroupId
+
+    SnsVpcEndpoint:
+      Type: AWS::EC2::VPCEndpoint
+      Properties:
+        VpcId: vpc-0007750f59de0bdd0
+        VpcEndpointType: Interface
+        ServiceName: com.amazonaws.${aws:region}.sns
+        PrivateDnsEnabled: true
+        SubnetIds:
+          - subnet-0ee0a1dd869db04c7
+          - subnet-0da578789a8cb50e6
+        SecurityGroupIds:
+          - Ref: SnsVpcEndpointSecurityGroup
+
     FeedbackCriticoTopic:
       Type: AWS::SNS::Topic
       Properties:

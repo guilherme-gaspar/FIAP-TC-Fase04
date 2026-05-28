@@ -19,9 +19,19 @@ public class FeedbackLambdaHandler {
 
     @POST
     public Response receber(FeedbackRequest input) {
-        processFeedbackUseCase.execute(input);
-        return Response.ok()
-                .entity(new FeedbackResponse("Feedback recebido com sucesso"))
-                .build();
+        try {
+            processFeedbackUseCase.execute(input);
+            return Response.ok()
+                    .entity(new FeedbackResponse("Feedback recebido com sucesso"))
+                    .build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new FeedbackResponse(e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new FeedbackResponse("Erro interno ao processar feedback"))
+                    .build();
+        }
     }
 }

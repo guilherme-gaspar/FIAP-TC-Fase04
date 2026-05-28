@@ -39,6 +39,7 @@ public class LoggingCriticalFeedbackNotifier implements CriticalFeedbackNotifier
                 "Atenciosamente,\nSistema de Feedback\n";
 
         try {
+            LOG.infov("Publicando notificação no SNS. topicArn={0}", topicArn);
             AmazonSNS sns = AmazonSNSClientBuilder.defaultClient();
             PublishRequest publishRequest = new PublishRequest()
                     .withTopicArn(topicArn)
@@ -46,9 +47,9 @@ public class LoggingCriticalFeedbackNotifier implements CriticalFeedbackNotifier
                     .withSubject("Feedback crítico recebido");
 
             sns.publish(publishRequest);
-            LOG.infov("Mensagem publicada no SNS. topic={0}", topicArn);
+            LOG.infov("Mensagem publicada no SNS com sucesso. topic={0}", topicArn);
         } catch (Exception e) {
-            LOG.error("Erro ao publicar mensagem no SNS", e);
+            LOG.errorf(e, "Falha ao publicar no SNS (best-effort). topicArn=%s", topicArn);
         }
     }
 }

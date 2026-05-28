@@ -47,6 +47,7 @@ resources:
         DBInstanceClass: db.t3.micro
         Engine: postgres
         EngineVersion: '18.1'
+        DBName: feedback
         MasterUsername: ${env:DB_MASTER_USERNAME}
         MasterUserPassword: ${env:DB_MASTER_PASSWORD}
         AllocatedStorage: 20
