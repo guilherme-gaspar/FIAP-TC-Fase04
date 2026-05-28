@@ -30,14 +30,16 @@ public class RelatorioLambda implements RequestHandler<Map<String, Object>, Map<
     @Inject
     DataSource dataSource;
 
-    @ConfigProperty(name = "SNS_TOPIC_ARN")
+    @ConfigProperty(name = "SNS_TOPIC_ARN", defaultValue = "")
     String topicArn;
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
+        LOG.info("Iniciando geração do relatório semanal de feedbacks.");
         try (Connection connection = dataSource.getConnection()) {
             String report = buildReport(connection);
             publish(report);
+            LOG.info("Relatório semanal processado com sucesso.");
             return response(200, "Relatório enviado com sucesso.");
         } catch (Exception e) {
             LOG.error("Erro ao gerar/enviar relatório", e);
@@ -49,14 +51,20 @@ public class RelatorioLambda implements RequestHandler<Map<String, Object>, Map<
         StringBuilder sb = new StringBuilder();
         sb.append("Prezado time,\n\nRelatório semanal de feedbacks\n\n");
 
-        sb.append("Média das avaliações: ").append(queryAvg(connection)).append("\n\n");
+        double average = queryAvg(connection);
+        List<String> byDay = queryByDay(connection);
+        List<String> byUrgency = queryByUrgency(connection);
+
+        LOG.infov("Resumo do relatório: media={0}, itensPorDia={1}, itensPorUrgencia={2}", average, byDay.size(), byUrgency.size());
+
+        sb.append("Média das avaliações: ").append(average).append("\n\n");
         sb.append("Quantidade de avaliações por dia:\n");
-        for (String item : queryByDay(connection)) {
+        for (String item : byDay) {
             sb.append("- ").append(item).append("\n");
         }
 
         sb.append("\nQuantidade de avaliações por urgência:\n");
-        for (String item : queryByUrgency(connection)) {
+        for (String item : byUrgency) {
             sb.append("- ").append(item).append("\n");
         }
         sb.append("\nAtenciosamente,\nSistema de Feedback\n");
@@ -103,14 +111,16 @@ public class RelatorioLambda implements RequestHandler<Map<String, Object>, Map<
     }
 
     private void publish(String message) {
-        if (topicArn == null || topicArn.isBlank()) {
+        if (topicArn.isBlank()) {
             LOG.warn("SNS_TOPIC_ARN não definido. Relatório será apenas logado.");
             LOG.info(message);
             return;
         }
 
+        LOG.infov("Publicando relatório no SNS. topicArn={0}", topicArn);
         AmazonSNS sns = AmazonSNSClientBuilder.defaultClient();
         sns.publish(new PublishRequest().withTopicArn(topicArn).withSubject("Relatório semanal de feedbacks").withMessage(message));
+        LOG.info("Relatório publicado no SNS com sucesso.");
     }
 
     private static Map<String, Object> response(int statusCode, String message) {
