@@ -18,7 +18,7 @@ provider:
     SNS_TOPIC_ARN:
       Ref: FeedbackCriticoTopic
 
-    DB_URL: ${env:DB_JDBC_URL}
+    DB_HOST: ${env:DB_HOST}
     DB_USER: ${env:DB_MASTER_USERNAME}
     DB_PASSWORD: ${env:DB_MASTER_PASSWORD}
 
